@@ -16,6 +16,11 @@ myLabel2    = Label(root, text="Hier können Sie feststellen, welche Person auf 
 myLabel3    = Label(root, text="Wählen sie einen Ordner in dem alle Bilder sind die sie überprüfen möchten!").pack()
 myLabel4    = Label(root, text="      ").pack()
 
+if os.path.isdir('known_images'):
+    pass
+else:
+    os.mkdir('known_images')
+
 #root.filename = filedialog.askopenfilename(initialdir="C:",title="Bild auswählen",filetypes=(("png files","*.png"),("all files","*.*")))
 def myClick():
     DIR_KNOWN_IMGS = "known_images"
