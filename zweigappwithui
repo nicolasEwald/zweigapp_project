@@ -15,6 +15,23 @@ myLabel     = Label(root, text="  ").pack()
 myLabel2    = Label(root, text="Hier können Sie feststellen, welche Person auf einem Foto Stefan Zweig ist!").pack()
 myLabel3    = Label(root, text="Wählen sie einen Ordner in dem alle Bilder sind die sie überprüfen möchten!").pack()
 myLabel4    = Label(root, text="      ").pack()
+myLabel5    = Label(root, text="Bitte geben Sie den Namen der Person an, die Sie erkennen möchten").pack()
+
+def myClick():
+    text = e.get()
+    if os.path.isdir('known_images/'+text):
+        pass
+    else:
+        os.mkdir('known_images/'+text)
+    return None
+
+
+
+e = Entry(root,width=50)
+e.pack()
+e.insert(0,"Max Mustermann")
+
+myButton= Button(root, text="Fertig",command=myClick).pack()
 
 if os.path.isdir('known_images'):
     pass
