@@ -10,6 +10,11 @@ root = Tk()
 root.title("Stefan Zweig App")
 root.geometry("600x400")
 
+if os.path.isdir('known_images'):
+    pass
+else:
+    os.mkdir('known_images')
+
 myLabe0     = Label(root, text="Willkommen in der Stefan Zweig App!").pack()
 myLabel     = Label(root, text="  ").pack()
 myLabel2    = Label(root, text="Hier können Sie feststellen, welche Person auf einem Foto Stefan Zweig ist!").pack()
@@ -25,34 +30,27 @@ def myClick():
         os.mkdir('known_images/'+text)
     return None
 
-
-
 e = Entry(root,width=50)
 e.pack()
 e.insert(0,"Max Mustermann")
 
-myButton= Button(root, text="Fertig",command=myClick).pack()
-
-if os.path.isdir('known_images'):
-    pass
-else:
-    os.mkdir('known_images')
+myButton= Button(root, text="hinzufügen",command=myClick).pack()
 
 #root.filename = filedialog.askopenfilename(initialdir="C:",title="Bild auswählen",filetypes=(("png files","*.png"),("all files","*.*")))
 def myClick():
     DIR_KNOWN_IMGS = "known_images"
-    print("choose folder with unknown pictures:")
+    print("Wählen Sie einen Ordner mit unbekannten Bildern: ")
     DIR_UNKNOWN_IMGS = filedialog.askdirectory()
 
     TOLERANCE = 0.5
     FRAME_THICKNESS = 1
-    FONT_THICKNESS = 1
+    #FONT_THICKNESS = 1
     MODEL = 'hog'
 
     known_imgs = []
     known_names = []
 
-    print("known Image names: ")
+    print("Bekannte Personen: ")
     #going trough known_images and assign names
     for name in os.listdir(DIR_KNOWN_IMGS):
         for filename in os.listdir(f'{DIR_KNOWN_IMGS}/{name}'):
@@ -68,7 +66,7 @@ def myClick():
         encodings = face_recognition.face_encodings(image, locations)
         image     = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-        print(f', found {len(encodings)} face(s)')
+        print(f', {len(encodings)} Gesicht(er) gefunden')
 
         #compare found faces in unknown_images with known_images
         for face_encoding, face_location in zip(encodings, locations):
