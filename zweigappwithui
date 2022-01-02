@@ -44,7 +44,7 @@ def myClick():
 
     TOLERANCE = 0.5
     FRAME_THICKNESS = 1
-    #FONT_THICKNESS = 1
+    FONT_THICKNESS = 1
     MODEL = 'hog'
 
     known_imgs = []
@@ -72,13 +72,20 @@ def myClick():
         for face_encoding, face_location in zip(encodings, locations):
             results = face_recognition.compare_faces(known_imgs, face_encoding, TOLERANCE)
 
+            match = None
             if True in results:
-                    
+                match = known_names[results.index(True)]
+
                 #drawing rectangle at facelocation
                 top_left = (face_location[3], face_location[0])
                 bottom_right = (face_location[1], face_location[2])
                 color = [200, 0, 0]
                 cv2.rectangle(image, top_left, bottom_right, color, FRAME_THICKNESS)
+
+                top_left = (face_location[3], face_location[2])
+                bottom_right = (face_location[1], face_location[2] + 22)
+                cv2.rectangle(image, top_left, bottom_right, color, cv2.FILLED)
+                cv2.putText(image, match, (face_location[3] + 5, face_location[2] + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), FONT_THICKNESS)
                 
         cv2.imshow(filename, image)
         cv2.waitKey(0)
