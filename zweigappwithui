@@ -1,48 +1,217 @@
+import tkinter as tk                # python 3
+from tkinter import font  as tkfont # python 3
 from tkinter import *
-from PIL import ImageTk, Image
+import os
+from tkinter import ttk
+from tkinter.ttk import *
+from tkinter import filedialog
+import shutil as shutil
+
+from tkinter import *
 from tkinter import filedialog
 import cv2
 import face_recognition
 import os
 
+class SampleApp(tk.Tk):
 
-root = Tk()
-root.title("Stefan Zweig App")
-root.geometry("600x400")
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
 
-if os.path.isdir('known_images'):
-    pass
-else:
-    os.mkdir('known_images')
+        self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
 
-myLabe0     = Label(root, text="Willkommen in der Stefan Zweig App!").pack()
-myLabel     = Label(root, text="  ").pack()
-myLabel2    = Label(root, text="Hier können Sie feststellen, welche Person auf einem Foto Stefan Zweig ist!").pack()
-myLabel3    = Label(root, text="Wählen sie einen Ordner in dem alle Bilder sind die sie überprüfen möchten!").pack()
-myLabel4    = Label(root, text="      ").pack()
-myLabel5    = Label(root, text="Bitte geben Sie den Namen der Person an, die Sie erkennen möchten").pack()
+        # the container is where we'll stack a bunch of frames
+        # on top of each other, then the one we want visible
+        # will be raised above the others
+        container = tk.Frame(self)
+        container.pack(side="top", fill="both", expand=True)
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
 
-def myClick():
-    text = e.get()
-    if os.path.isdir('known_images/'+text):
-        pass
-    else:
-        os.mkdir('known_images/'+text)
-    return None
+        self.frames = {}
+        for F in (StartPage, EditPerson, DetectPerson,AddPic,NotExisting,AddPerson,AlreadyExisting,SuccessfulAdd):
+            page_name = F.__name__
+            frame = F(parent=container, controller=self)
+            self.frames[page_name] = frame
 
-e = Entry(root,width=50)
-e.pack()
-e.insert(0,"Max Mustermann")
+            # put all of the pages in the same location;
+            # the one on the top of the stacking order
+            # will be the one that is visible.
+            frame.grid(row=0, column=0, sticky="nsew")
 
-myButton= Button(root, text="hinzufügen",command=myClick).pack()
+        self.show_frame("StartPage")
 
-#root.filename = filedialog.askopenfilename(initialdir="C:",title="Bild auswählen",filetypes=(("png files","*.png"),("all files","*.*")))
+    def show_frame(self, page_name):
+        '''Show a frame for the given page name'''
+        frame = self.frames[page_name]
+        frame.tkraise()
+
+
+class StartPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Willkommen in der Zweig App!", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+        label1 = tk.Label(self, text="       ", font=controller.title_font)
+        label1.pack()
+
+        button1 = tk.Button(self, text="Personen verwalten",
+                            command=lambda: controller.show_frame("EditPerson"))
+        button2 = tk.Button(self, text="Unbekannte erkennen",
+                            command=lambda: controller.show_frame("DetectPerson"))
+        button1.pack()
+        button2.pack()
+
+
+class EditPerson(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Bitte wählen Sie aus:", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+        
+            
+        button1 = tk.Button(self, text="Porträt zu bestehender Person hinzufügen",
+                          command=lambda: controller.show_frame("AddPic"))
+        button1.pack()
+
+        
+        button2 = tk.Button(self, text="Person hinzufügen",
+        command=lambda: controller.show_frame("AddPerson"))
+        button2.pack()
+        button3 = tk.Button(self, text="zurück",
+                           command=lambda: controller.show_frame("StartPage"))
+        button3.pack()
+
+
+
+class DetectPerson(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Bitte wählen Sie aus ob Sie mehrere Bilder untersuchen möchten", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+
+        button= tk.Button(self, text="Ordner auswählen",
+                           command= myClick)
+        button.pack()
+        button2= tk.Button(self, text="einzelnes Bild erkennen",
+                           #command= Code zum ausführen
+                        )
+        button2.pack()
+
+        button1 = tk.Button(self, text="zurück",
+                           command=lambda: controller.show_frame("StartPage"))
+        button1.pack()
+
+
+
+class AddPic(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Name der Person:", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+        
+        e = Entry(self,width=50)
+        e.pack()
+        def kontr():
+            text = e.get()
+            def fotohinzu():
+                print(text)
+                src_dir = filedialog.askopenfilename(initialdir="/", title="Select A File", filetypes=(("jpg files", "*.jpg"),("all files", "*.*")))
+                dst_dir = 'known_images/'+text
+                shutil.copy(src_dir, dst_dir)
+            if os.path.isdir('known_images/'+text) and text!="":
+
+                button1 = tk.Button(self, text="Foto hinzufügen",
+                        command=fotohinzu)
+                button1.pack()   
+            else:
+                controller.show_frame("NotExisting")
+
+        button1 = tk.Button(self, text="fertig",
+                        command=kontr)
+        button1.pack()
+        button2 = tk.Button(self, text="zurück",
+                           command=lambda: controller.show_frame("EditPerson"))
+        button2.pack()
+
+        
+
+class NotExisting(tk.Frame):
+        def __init__(self, parent, controller):
+            tk.Frame.__init__(self, parent)
+            self.controller = controller
+            label = tk.Label(self, text="Person existiert nicht", font=controller.title_font)
+            label.pack(side="top", fill="x", pady=10)
+            button1 = tk.Button(self, text="zurück",
+                           command=lambda: controller.show_frame("AddPic"))
+            button1.pack()
+
+
+class AddPerson(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Bitte geben Sie den Namen der Person an, die Sie hinzufügen möchten", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+        e = Entry(self,width=50)
+        e.pack()
+        def add():
+            text = e.get()
+            if os.path.isdir('known_images/'+text):
+                controller.show_frame("AlreadyExisting")
+            else:
+                os.mkdir('known_images/'+text)
+                controller.show_frame("SuccessfulAdd")
+
+
+
+        button1 = tk.Button(self, text="hinzufügen",
+                        command=add)
+        button1.pack()
+        button2 = tk.Button(self, text="zurück",
+                           command=lambda: controller.show_frame("EditPerson"))
+        button2.pack()
+
+
+
+class AlreadyExisting(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Person existiert bereits", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+        button1 = tk.Button(self, text="zurück",
+                    command=lambda: controller.show_frame("AddPerson"))
+        button1.pack()
+
+
+class SuccessfulAdd(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Person wurde erfolgreich hinzugefügt", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+        button = tk.Button(self, text="Foto hinzufügen",
+                            command=lambda: controller.show_frame("AddPic"))
+        button.pack()
+        button1 = tk.Button(self, text="zurück",
+                    command=lambda: controller.show_frame("StartPage"))
+        button1.pack()
+
 def myClick():
     DIR_KNOWN_IMGS = "known_images"
     print("Wählen Sie einen Ordner mit unbekannten Bildern: ")
     DIR_UNKNOWN_IMGS = filedialog.askdirectory()
 
-    TOLERANCE = 0.5
+    TOLERANCE = 0.4
     FRAME_THICKNESS = 1
     FONT_THICKNESS = 1
     MODEL = 'hog'
@@ -94,6 +263,9 @@ def myClick():
 
 
 
-myButton=Button(root,text="Ordner auswählen",padx=30,pady=30,command=myClick).pack()
 
-root.mainloop()
+    
+
+
+app = SampleApp()
+app.mainloop()
