@@ -206,18 +206,37 @@ class SuccessfulAdd(tk.Frame):
                     command=lambda: controller.show_frame("StartPage"))
         button1.pack()
 
+#giving different names different colors
+def name_to_color(name):
+    color = [(ord(c.lower())-97)*8 for c in name[:3]]
+    return color
+
 def myClick():
     DIR_KNOWN_IMGS = "known_images"
     print("Wählen Sie einen Ordner mit unbekannten Bildern: ")
     DIR_UNKNOWN_IMGS = filedialog.askdirectory()
 
-    TOLERANCE = 0.4
+    TOLERANCE = 0.5
     FRAME_THICKNESS = 1
     FONT_THICKNESS = 1
     MODEL = 'hog'
 
     known_imgs = []
     known_names = []
+
+    name_of_chosen_folder = f'{DIR_UNKNOWN_IMGS}'.rsplit('/', 1)[-1]
+    
+    #creating recognized image folder if not there already
+    if os.path.isdir('recognized_images/'):
+        print("already here")
+    else:
+        os.mkdir('recognized_images/') 
+
+    #creating specific folder for the chosen folder
+    if os.path.isdir('recognized_images/'+ f'{name_of_chosen_folder}'):
+        print("already here")
+    else:
+        os.mkdir('recognized_images/'+ f'{name_of_chosen_folder}')      
 
     print("Bekannte Personen: ")
     #going trough known_images and assign names
@@ -229,14 +248,21 @@ def myClick():
             known_imgs.append(encoding)
             known_names.append(name)
 
+    #create .txt file with recognized persons in chosen folder
+    save_path = 'recognized_images/'+ f'{name_of_chosen_folder}'
+    file_name = f'{name_of_chosen_folder}_recognized.txt'
+    completeName = os.path.join(save_path, file_name)
+    file1 = open(completeName, "a")
+
     for filename in os.listdir(DIR_UNKNOWN_IMGS):
         image     = face_recognition.load_image_file(f'{DIR_UNKNOWN_IMGS}/{filename}')
         locations = face_recognition.face_locations(image, model=MODEL)
         encodings = face_recognition.face_encodings(image, locations)
         image     = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-        print(f', {len(encodings)} Gesicht(er) gefunden')
+        #print(f'{len(encodings)} Gesicht(er) gefunden')
 
+        file1.write(f'Im Bild: "{filename}" wurden {len(encodings)} Gesichter und folgende Personen erkannt:'+ '\n')
         #compare found faces in unknown_images with known_images
         for face_encoding, face_location in zip(encodings, locations):
             results = face_recognition.compare_faces(known_imgs, face_encoding, TOLERANCE)
@@ -244,27 +270,27 @@ def myClick():
             match = None
             if True in results:
                 match = known_names[results.index(True)]
-
+                print(match)
                 #drawing rectangle at facelocation
                 top_left = (face_location[3], face_location[0])
                 bottom_right = (face_location[1], face_location[2])
-                color = [200, 0, 0]
+                color = name_to_color(match)
                 cv2.rectangle(image, top_left, bottom_right, color, FRAME_THICKNESS)
 
+                #writing names at facelocation
                 top_left = (face_location[3], face_location[2])
                 bottom_right = (face_location[1], face_location[2] + 22)
                 cv2.rectangle(image, top_left, bottom_right, color, cv2.FILLED)
                 cv2.putText(image, match, (face_location[3] + 5, face_location[2] + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), FONT_THICKNESS)
-                
-        cv2.imshow(filename, image)
-        cv2.waitKey(0)
-        cv2.destroyWindow(filename)
+                file1.write(f'{match}'+ '\n')
+        file1.write('\n')
 
+        cv2.imwrite(f'recognized_images/{name_of_chosen_folder}/'+ filename + '_recognized.jpg', image)
 
-
-
-
-    
+    file1.close()
+        #cv2.imshow(filename, image)
+        #cv2.waitKey(0)
+        #cv2.destroyWindow(filename)
 
 
 app = SampleApp()
