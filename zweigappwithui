@@ -19,7 +19,7 @@ class SampleApp(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
 
         self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
-
+        self.geometry("850x600")
         # the container is where we'll stack a bunch of frames
         # on top of each other, then the one we want visible
         # will be raised above the others
@@ -29,7 +29,7 @@ class SampleApp(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (StartPage, EditPerson, DetectPerson,AddPic,NotExisting,AddPerson,AlreadyExisting,SuccessfulAdd):
+        for F in (StartPage, EditPerson, DetectPerson,AddPic,NotExisting,AddPerson,AlreadyExisting,SuccessfulAdd,SuccessfulAddedPic,PictureAdd,AddMultPic):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
@@ -75,7 +75,7 @@ class EditPerson(tk.Frame):
         
             
         button1 = tk.Button(self, text="Porträt zu bestehender Person hinzufügen",
-                          command=lambda: controller.show_frame("AddPic"))
+                          command=lambda: controller.show_frame("PictureAdd"))
         button1.pack()
 
         
@@ -97,7 +97,8 @@ class DetectPerson(tk.Frame):
         label.pack(side="top", fill="x", pady=10)
 
         button= tk.Button(self, text="Ordner auswählen",
-                           command= myClick)
+                           command = myClick
+                        )
         button.pack()
         button2= tk.Button(self, text="einzelnes Bild erkennen",
                            #command= Code zum ausführen
@@ -108,6 +109,20 @@ class DetectPerson(tk.Frame):
                            command=lambda: controller.show_frame("StartPage"))
         button1.pack()
 
+class PictureAdd(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        button = tk.Button(self, text="Ein Porträt hinzufügen",
+        command=lambda: controller.show_frame("AddPic"))
+        button.pack()
+        button1 = tk.Button(self, text="Mehrere Bilder hinzufügen",
+                           command=lambda: controller.show_frame("AddMultPic"))
+        button1.pack()
+        button1 = tk.Button(self, text="zurück",
+                           command=lambda: controller.show_frame("StartPage"))
+        button1.pack()
 
 
 class AddPic(tk.Frame):
@@ -116,16 +131,18 @@ class AddPic(tk.Frame):
         self.controller = controller
         label = tk.Label(self, text="Name der Person:", font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
-        
-        e = Entry(self,width=50)
-        e.pack()
+        my_list = os.listdir('known_images')
+        chosen=StringVar()
+        drop = OptionMenu(self,chosen,*my_list )
+        drop.pack()
         def kontr():
-            text = e.get()
+            text = chosen.get()
             def fotohinzu():
                 print(text)
                 src_dir = filedialog.askopenfilename(initialdir="/", title="Select A File", filetypes=(("jpg files", "*.jpg"),("all files", "*.*")))
                 dst_dir = 'known_images/'+text
                 shutil.copy(src_dir, dst_dir)
+                controller.show_frame("SuccessfulAddedPic")              
             if os.path.isdir('known_images/'+text) and text!="":
 
                 button1 = tk.Button(self, text="Foto hinzufügen",
@@ -133,13 +150,48 @@ class AddPic(tk.Frame):
                 button1.pack()   
             else:
                 controller.show_frame("NotExisting")
-
-        button1 = tk.Button(self, text="fertig",
-                        command=kontr)
-        button1.pack()
-        button2 = tk.Button(self, text="zurück",
-                           command=lambda: controller.show_frame("EditPerson"))
+            button.configure(state=DISABLED)
+        button=tk.Button(self,text="weiter",command=kontr)
+        button.pack()
+        button2=tk.Button(self,text="zurück",command=lambda: controller.show_frame("PictureAdd"))
         button2.pack()
+        
+
+class AddMultPic(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Name der Person:", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+        my_list = os.listdir('known_images')
+        chosen=StringVar()
+        drop = OptionMenu(self,chosen,*my_list )
+        drop.pack()
+        def kontr():
+            text = chosen.get()
+            def fotohinzu():
+                print(text)
+                source_folder = filedialog.askdirectory()
+                destination_folder = 'known_images/'+text
+                files = os.listdir(source_folder)
+                for fname in files:
+                    shutil.copy2(os.path.join(source_folder,fname), destination_folder)
+
+                controller.show_frame("SuccessfulAddedPic")              
+            if os.path.isdir('known_images/'+text) and text!="":
+                button1 = tk.Button(self, text="Foto hinzufügen",
+                        command=fotohinzu)
+                button1.pack()   
+            else:
+                controller.show_frame("NotExisting")
+            button.configure(state=DISABLED)
+            
+        button=tk.Button(self,text="weiter",command=kontr)
+        button.pack()
+        button2=tk.Button(self,text="zurück",command=lambda: controller.show_frame("PictureAdd"))
+        button2.pack()
+        
+
 
         
 
@@ -150,7 +202,7 @@ class NotExisting(tk.Frame):
             label = tk.Label(self, text="Person existiert nicht", font=controller.title_font)
             label.pack(side="top", fill="x", pady=10)
             button1 = tk.Button(self, text="zurück",
-                           command=lambda: controller.show_frame("AddPic"))
+                           command=lambda: controller.show_frame("PictureAdd"))
             button1.pack()
 
 
@@ -206,6 +258,19 @@ class SuccessfulAdd(tk.Frame):
                     command=lambda: controller.show_frame("StartPage"))
         button1.pack()
 
+class SuccessfulAddedPic(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Foto wurde hinzugefügt!", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+        button = tk.Button(self, text="Startseite",
+                            command=lambda: controller.show_frame("StartPage"))
+        button.pack()
+        button1 = tk.Button(self, text="zurück",
+                            command=lambda: controller.show_frame("AddPic"))
+        button1.pack()
+   
 #giving different names different colors
 def name_to_color(name):
     color = [(ord(c.lower())-97)*8 for c in name[:3]]
@@ -252,6 +317,8 @@ def myClick():
     save_path = 'recognized_images/'+ f'{name_of_chosen_folder}'
     file_name = f'{name_of_chosen_folder}_recognized.txt'
     completeName = os.path.join(save_path, file_name)
+    file1 = open(completeName, "w")
+    file1.close()
     file1 = open(completeName, "a")
 
     for filename in os.listdir(DIR_UNKNOWN_IMGS):
@@ -261,7 +328,6 @@ def myClick():
         image     = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
         #print(f'{len(encodings)} Gesicht(er) gefunden')
-
         file1.write(f'Im Bild: "{filename}" wurden {len(encodings)} Gesichter und folgende Personen erkannt:'+ '\n')
         #compare found faces in unknown_images with known_images
         for face_encoding, face_location in zip(encodings, locations):
