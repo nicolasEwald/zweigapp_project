@@ -27,7 +27,7 @@ class SampleApp(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (StartPage, EditPerson, DetectPerson,AddPic,NotExisting,AddPerson,AlreadyExisting,SuccessfulAdd,SuccessfulAddedPic,PictureAdd,AddMultPic):
+        for F in (StartPage, EditPerson, DetectPerson,AddPic,AddPerson,AlreadyExisting,SuccessfulAdd,SuccessfulAddedPic,PictureAdd,AddMultPic):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
@@ -98,10 +98,6 @@ class DetectPerson(tk.Frame):
                            command = myClick
                         )
         button.pack()
-        button2= tk.Button(self, text="einzelnes Bild erkennen",
-                           #command= Code zum ausführen
-                        )
-        button2.pack()
 
         button1 = tk.Button(self, text="zurück",
                            command=lambda: controller.show_frame("StartPage"))
@@ -181,7 +177,7 @@ class AddMultPic(tk.Frame):
                         command=fotohinzu)
                 button1.pack()   
             else:
-                controller.show_frame("NotExisting")
+                pass
             button.configure(state=DISABLED)
             
         button=tk.Button(self,text="weiter",command=kontr)
@@ -192,17 +188,6 @@ class AddMultPic(tk.Frame):
 
 
         
-
-class NotExisting(tk.Frame):
-        def __init__(self, parent, controller):
-            tk.Frame.__init__(self, parent)
-            self.controller = controller
-            label = tk.Label(self, text="Person existiert nicht", font=controller.title_font)
-            label.pack(side="top", fill="x", pady=10)
-            button1 = tk.Button(self, text="zurück",
-                           command=lambda: controller.show_frame("PictureAdd"))
-            button1.pack()
-
 
 class AddPerson(tk.Frame):
 
