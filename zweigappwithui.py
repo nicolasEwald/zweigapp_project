@@ -1,17 +1,15 @@
-import tkinter as tk                # python 3
-from tkinter import font  as tkfont # python 3
+import tkinter as tk                
+from tkinter import font  as tkfont 
 from tkinter import *
 import os
-from tkinter import ttk
+import sys
 from tkinter.ttk import *
 from tkinter import filedialog
 import shutil as shutil
-
-from tkinter import *
-from tkinter import filedialog
 import cv2
 import face_recognition
-import os
+
+application_path = os.path.dirname(sys.executable)
 
 class SampleApp(tk.Tk):
 
@@ -278,7 +276,6 @@ def name_to_color(name):
 
 def myClick():
     DIR_KNOWN_IMGS = "known_images"
-    print("Wählen Sie einen Ordner mit unbekannten Bildern: ")
     DIR_UNKNOWN_IMGS = filedialog.askdirectory()
 
     TOLERANCE = 0.5
@@ -298,10 +295,10 @@ def myClick():
         os.mkdir('recognized_images/') 
 
     #creating specific folder for the chosen folder
-    if os.path.isdir('recognized_images/'+ f'{name_of_chosen_folder}'):
+    if os.path.isdir('recognized_images/'+ f'{name_of_chosen_folder}_recog'):
         print("already here")
     else:
-        os.mkdir('recognized_images/'+ f'{name_of_chosen_folder}')      
+        os.mkdir('recognized_images/'+ f'{name_of_chosen_folder}_recog')      
 
     print("Bekannte Personen: ")
     #going trough known_images and assign names
@@ -314,7 +311,7 @@ def myClick():
             known_names.append(name)
 
     #create .txt file with recognized persons in chosen folder
-    save_path = 'recognized_images/'+ f'{name_of_chosen_folder}'
+    save_path = 'recognized_images/'+ f'{name_of_chosen_folder}_recog'
     file_name = f'{name_of_chosen_folder}_recognized.txt'
     completeName = os.path.join(save_path, file_name)
     file1 = open(completeName, "w")
@@ -351,12 +348,9 @@ def myClick():
                 file1.write(f'{match}'+ '\n')
         file1.write('\n')
 
-        cv2.imwrite(f'recognized_images/{name_of_chosen_folder}/'+ filename + '_recognized.jpg', image)
+        cv2.imwrite(f'recognized_images/{name_of_chosen_folder}_recog/'+ filename + '_recognized.jpg', image)
 
     file1.close()
-        #cv2.imshow(filename, image)
-        #cv2.waitKey(0)
-        #cv2.destroyWindow(filename)
 
 
 app = SampleApp()
